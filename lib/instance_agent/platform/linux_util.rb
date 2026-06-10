@@ -38,13 +38,15 @@ module InstanceAgent
       File.executable?(path)
     end
 
+    TAR_CMD = File.exist?('/bin/tar') ? '/bin/tar' : '/usr/bin/tar'
+
     def self.extract_tar(bundle_file, dst)
       log(:debug, "extract_tar - dst : #{dst}")
       FileUtils.mkdir_p(dst)
       working_dir = FileUtils.pwd()
       absolute_bundle_path = File.expand_path(bundle_file)
       FileUtils.cd(dst) do
-        execute_tar_command("/bin/tar -xpsf #{absolute_bundle_path}")
+        execute_tar_command("#{TAR_CMD} -xpf #{absolute_bundle_path}")
       end
     end
 
@@ -61,7 +63,7 @@ module InstanceAgent
       working_dir = FileUtils.pwd()
       absolute_bundle_path = File.expand_path(bundle_file)
       FileUtils.cd(dst) do 
-        execute_tar_command("/bin/tar -zxpsf #{absolute_bundle_path}")
+        execute_tar_command("#{TAR_CMD} -zxpf #{absolute_bundle_path}")
       end
     end
 

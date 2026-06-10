@@ -27,7 +27,7 @@ begin
   require 'cucumber/rake/task'
   desc = 'aws codedeploy agent integration tests'
   Cucumber::Rake::Task.new('test-integration-aws-codedeploy-agent', desc) do |t|
-    t.cucumber_opts = "features -t ~@Ignore"
+    t.cucumber_opts = 'features --tags "not @Ignore"'
   end
   task 'test-integration' => 'test-integration-aws-codedeploy-agent'
 rescue LoadError

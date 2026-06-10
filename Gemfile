@@ -23,4 +23,6 @@ group :test do
   gem 'shoulda-context'
   gem 'simplecov', require: false
   gem 'simplecov-lcov', require: false
+  gem 'aws-sdk-codedeploy'
+  gem 'aws-sdk-iam'
 end

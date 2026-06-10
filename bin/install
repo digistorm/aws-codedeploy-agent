@@ -224,7 +224,7 @@ install [--sanity-check] [--disable-imds-v1] [--proxy http://hostname:port] <pac
    package-type: 'rpm', 'deb', or 'auto'
 
 Installs fetches the latest package version of the specified type and
-installs it. rpms are installed with yum; debs are installed using gdebi.
+installs it. rpms are installed with yum or dnf; debs are installed using gdebi.
 
 This program is invoked automatically to update the agent once per day using
 the same package manager the codedeploy-agent is initially installed with.
@@ -245,8 +245,8 @@ IMDS v2 call is failed
 To use a HTTP proxy, specify --proxy followed by the proxy server
 defined by http://hostname:port
 
-This install script needs Ruby versions 2.x or 3.x installed as a prerequisite.
-Currently recommended Ruby versions are 2.0.0, 2.1.8, 2.2.4, 2.3, 2.4, 2.5, 2.6, 2.7, 3.0, 3.1, and 3.2
+This install script needs Ruby versions 2.7 or 3.[1-3] installed as a prerequisite.
+Currently recommended Ruby versions are 2.7, 3.0, 3.1, 3.2, and 3.3
 If multiple Ruby versions are installed, the default ruby version will be used.
 If the default ruby version does not satisfy requirement, the newest version will be used.
 If you do not have a supported Ruby version installed, please install one of them first.
@@ -255,7 +255,7 @@ EOF
   end
 
   def supported_ruby_versions
-    ['3.2','3.1','3.0', '2.7', '2.6', '2.5', '2.4', '2.3', '2.2', '2.1', '2.0']
+    ['3.3', '3.2', '3.1', '3.0', '2.7']
   end
 
   # check ruby version, only version 2.x 3.x works
@@ -345,7 +345,7 @@ EOF
     # change interpreter when symlink /usr/bin/ruby2.x exists, but running with non-supported ruby version
     actual_ruby_version = RUBY_VERSION.split('.').map{|s|s.to_i}
     left_bound = '2.0.0'.split('.').map{|s|s.to_i}
-    right_bound = '3.2.1'.split('.').map{|s|s.to_i}
+    right_bound = '3.99.99'.split('.').map{|s|s.to_i}
     if (actual_ruby_version <=> left_bound) < 0
       if(!@reexeced)
         @log.info("The current Ruby version is not 2.x or 3.x! Restarting the installer with #{ruby_interpreter_path}")
@@ -534,16 +534,17 @@ EOF
     @log.info('Attempting to automatically detect supported package manager type for system...')
 
     has_yum = run_command('which yum >/dev/null 2>/dev/null')
+    has_dnf = run_command('which dnf >/dev/null 2>/dev/null')
     has_apt_get = run_command('which apt-get >/dev/null 2>/dev/null')
     has_gdebi = run_command('which gdebi >/dev/null 2>/dev/null')
     has_zypper = run_command('which zypper >/dev/null 2>/dev/null')
 
-    if (has_yum && (has_apt_get || has_gdebi))
+    if ((has_yum || has_dnf) && (has_apt_get || has_gdebi))
       @log.error('Detected both supported rpm and deb package managers. Please specify which package type to use manually.')
       exit(1)
     end
 
-    if(has_yum)
+    if(has_yum || has_dnf)
       @type = 'rpm'
     elsif(has_zypper)
       @type = 'zypper'
@@ -579,7 +580,8 @@ EOF
       @log.info('Running version matches target version, skipping install')
     else
       #use -y to answer yes to confirmation prompts
-      install_cmd = ['/usr/bin/yum', '-y', 'localinstall']
+      rpm_installer = File.exist?('/usr/bin/yum') ? '/usr/bin/yum' : '/usr/bin/dnf'
+      install_cmd = [rpm_installer, '-y', 'localinstall']
       install_from_s3(s3_bucket, target_version, install_cmd)
       do_sanity_check('/sbin/service')
     end
