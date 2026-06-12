@@ -4,8 +4,8 @@ Description=AWS CodeDeploy Host Agent
 [Service]
 Type=forking
 After=network.target
-ExecStart=/bin/bash -a -c '[ -f /etc/profile ] && source /etc/profile; /opt/codedeploy-agent/bin/codedeploy-agent start'
-ExecStop=/opt/codedeploy-agent/bin/codedeploy-agent stop
+ExecStart=/bin/bash -a -c '[ -f /etc/profile ] && source /etc/profile; cd /opt/codedeploy-agent && bundle exec bin/codedeploy-agent start'
+ExecStop=/bin/bash -a -c 'cd /opt/codedeploy-agent && bundle exec bin/codedeploy-agent stop'
 RemainAfterExit=no
 Restart=on-failure
 
